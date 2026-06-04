@@ -1,0 +1,21 @@
+# Maven build output
+target/
+
+# IDE / editor
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# Claude Code local config (contains machine-specific paths)
+.claude/
+
+# Windows / OS junk
+desktop.ini
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log

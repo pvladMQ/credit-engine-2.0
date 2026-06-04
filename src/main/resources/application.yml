@@ -1,0 +1,124 @@
+# ============================================================================
+# Default (common) configuration. The active profile selects the backing stack:
+#   - cloud : real bound services on Tanzu Platform (set via SPRING_PROFILES_ACTIVE)
+#   - local : H2 + in-memory cache + in-process queue + stub AI (no external deps)
+# Bare runs (no active profile) fall back to 'local'.
+# ============================================================================
+spring:
+  application:
+    name: global-credit-engine
+  profiles:
+    default: local
+  # Placeholder so Spring AI's OpenAI auto-config bootstraps even without a real key
+  # (the cloud profile overrides this from the credit-chat binding; local never calls out).
+  ai:
+    openai:
+      api-key: ${SPRING_AI_OPENAI_API_KEY:not-set}
+
+server:
+  port: ${PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+credit-engine:
+  queue:
+    name: application-requests
+
+logging:
+  level:
+    com.tanzu.creditengine: INFO
+    org.springframework.amqp: WARN
+
+---
+# ============================================================================
+# LOCAL profile — frontend inspection only. No Postgres / Valkey / RabbitMQ / GenAI.
+# ============================================================================
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  # Don't auto-connect to Redis or RabbitMQ when running locally.
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+
+  datasource:
+    url: jdbc:h2:mem:creditdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+  h2:
+    console:
+      enabled: true
+
+---
+# ============================================================================
+# CLOUD profile — Tanzu Platform for Cloud Foundry. Service credentials are injected
+# by the platform (java-cfenv resolves the vcap.services.* placeholders below).
+# ============================================================================
+spring:
+  config:
+    activate:
+      on-profile: cloud
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  datasource:
+    url: ${vcap.services.credit-db.credentials.jdbcUrl:jdbc:postgresql://localhost:5432/creditdb}
+    username: ${vcap.services.credit-db.credentials.username:postgres}
+    password: ${vcap.services.credit-db.credentials.password:postgres}
+    driver-class-name: org.postgresql.Driver
+
+  data:
+    redis:
+      host: ${vcap.services.credit-cache.credentials.host:localhost}
+      port: ${vcap.services.credit-cache.credentials.port:6379}
+      password: ${vcap.services.credit-cache.credentials.password:}
+
+  rabbitmq:
+    host: ${vcap.services.credit-msg.credentials.hostname:localhost}
+    port: ${vcap.services.credit-msg.credentials.port:5672}
+    username: ${vcap.services.credit-msg.credentials.username:guest}
+    password: ${vcap.services.credit-msg.credentials.password:guest}
+    listener:
+      simple:
+        # Bounded concurrency so a burst of messages can't spawn unbounded work
+        # and spike CPU. Tune per instance size.
+        concurrency: 2
+        max-concurrency: 4
+        prefetch: 10
+
+  # Tanzu GenAI 'credit-chat' exposes an OpenAI-compatible API. Credential key names
+  # depend on the GenAI tile binding; adjust if your binding differs.
+  ai:
+    openai:
+      api-key: ${vcap.services.credit-chat.credentials.api_key:not-set}
+      base-url: ${vcap.services.credit-chat.credentials.api_base:https://api.openai.com}
+      chat:
+        options:
+          model: ${vcap.services.credit-chat.credentials.model_name:gpt-4o-mini}

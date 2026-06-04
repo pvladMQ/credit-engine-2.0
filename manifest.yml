@@ -1,0 +1,25 @@
+---
+applications:
+  - name: global-credit-engine
+    memory: 1G
+    disk_quota: 2G
+    instances: 1
+    path: target/global-credit-engine-1.0.0-SNAPSHOT.jar
+    buildpacks:
+      - java_buildpack_offline
+    env:
+      JAVA_OPTS: -Djava.security.egd=file:///dev/urandom
+      JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 17.+ } }'
+      SPRING_PROFILES_ACTIVE: cloud
+    # Services (credit-db, credit-msg, credit-cache) bound automatically to the app
+    # Note: credit-cache is bound to a Valkey instance
+    services:
+      - credit-db
+      - credit-msg
+      - credit-cache
+      - credit-chat
+    # Random route ensures a unique public URL (e.g., global-credit-engine-brave-lion-xs.cfapps.io)
+    random-route: true
+    health-check-type: http
+    health-check-http-endpoint: /actuator/health
+    timeout: 180
