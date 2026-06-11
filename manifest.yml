@@ -20,6 +20,9 @@ applications:
       - credit-chat
     # Random route ensures a unique public URL (e.g., credit-engine-2.0-brave-lion-xs.cfapps.io)
     random-route: true
-    health-check-type: http
-    health-check-http-endpoint: /actuator/health
+    # Process health-check: CF only verifies the app process is alive. This prevents a
+    # transient DOWN reading from an optional dependency's /actuator/health indicator
+    # (Valkey/RabbitMQ) from crash-looping the app. Switch back to 'http' with
+    # health-check-http-endpoint: /actuator/health if you want endpoint-level checks.
+    health-check-type: process
     timeout: 180
