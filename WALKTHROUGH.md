@@ -7,7 +7,7 @@ Successfully created a **Spring Boot 3.x Maven project** demonstrating the "Data
 ## Project Structure
 
 ```
-global-credit-engine/
+credit-engine-2.0/
 ├── pom.xml                    # Maven build with all dependencies
 ├── manifest.yml               # Cloud Foundry deployment config
 ├── README.md                  # Comprehensive documentation

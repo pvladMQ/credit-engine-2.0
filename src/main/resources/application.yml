@@ -6,7 +6,7 @@
 # ============================================================================
 spring:
   application:
-    name: global-credit-engine
+    name: credit-engine-2.0
   profiles:
     default: local
   # Placeholder so Spring AI's OpenAI auto-config bootstraps even without a real key
@@ -72,8 +72,17 @@ spring:
 
 ---
 # ============================================================================
-# CLOUD profile — Tanzu Platform for Cloud Foundry. Service credentials are injected
-# by the platform (java-cfenv resolves the vcap.services.* placeholders below).
+# CLOUD profile — Tanzu Platform for Cloud Foundry.
+#
+# The Tanzu Java buildpack injects 'spring-cloud-bindings' on the classpath and uses it
+# to auto-configure spring.datasource (PostgreSQL), spring.data.redis (Valkey) and
+# spring.rabbitmq from the bound services in VCAP_SERVICES. We deliberately DO NOT set
+# those properties here — letting the binding own them avoids credential field-name
+# mismatches (e.g. the Postgres binding uses 'user', not 'username') and the 'hosts'
+# array, and prevents precedence conflicts with the buildpack binding.
+#
+# IMPORTANT: do not bundle spring-cloud-bindings in pom.xml — a second copy on the
+# classpath crashes the app during environment post-processing at startup.
 # ============================================================================
 spring:
   config:
@@ -88,23 +97,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
-  datasource:
-    url: ${vcap.services.credit-db.credentials.jdbcUrl:jdbc:postgresql://localhost:5432/creditdb}
-    username: ${vcap.services.credit-db.credentials.username:postgres}
-    password: ${vcap.services.credit-db.credentials.password:postgres}
-    driver-class-name: org.postgresql.Driver
-
-  data:
-    redis:
-      host: ${vcap.services.credit-cache.credentials.host:localhost}
-      port: ${vcap.services.credit-cache.credentials.port:6379}
-      password: ${vcap.services.credit-cache.credentials.password:}
-
   rabbitmq:
-    host: ${vcap.services.credit-msg.credentials.hostname:localhost}
-    port: ${vcap.services.credit-msg.credentials.port:5672}
-    username: ${vcap.services.credit-msg.credentials.username:guest}
-    password: ${vcap.services.credit-msg.credentials.password:guest}
     listener:
       simple:
         # Bounded concurrency so a burst of messages can't spawn unbounded work
@@ -113,8 +106,9 @@ spring:
         max-concurrency: 4
         prefetch: 10
 
-  # Tanzu GenAI 'credit-chat' exposes an OpenAI-compatible API. Credential key names
-  # depend on the GenAI tile binding; adjust if your binding differs.
+  # Tanzu GenAI 'credit-chat' exposes an OpenAI-compatible API. The GenAI tile binding is
+  # not auto-mapped by spring-cloud-bindings, so map it explicitly from VCAP_SERVICES.
+  # Credential key names depend on the GenAI tile; adjust if your binding differs.
   ai:
     openai:
       api-key: ${vcap.services.credit-chat.credentials.api_key:not-set}

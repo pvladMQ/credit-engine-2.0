@@ -12,8 +12,8 @@
     </parent>
 
     <groupId>com.tanzu</groupId>
-    <artifactId>global-credit-engine</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <artifactId>credit-engine-2.0</artifactId>
+    <version>2.0.0</version>
     <name>Global Credit Scoring Engine</name>
     <description>Credit scoring on Tanzu Platform with PostgreSQL, Valkey, RabbitMQ and GenAI</description>
 
@@ -79,12 +79,10 @@
             <artifactId>spring-ai-starter-model-openai</artifactId>
         </dependency>
 
-        <!-- Maps Cloud Foundry VCAP_SERVICES bindings to Spring properties -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-bindings</artifactId>
-            <version>2.0.4</version>
-        </dependency>
+        <!-- NOTE: do NOT bundle spring-cloud-bindings here. The Tanzu Java buildpack
+             injects it on the classpath automatically; bundling a second copy causes a
+             startup crash. Service credentials are resolved from VCAP_SERVICES via
+             Spring Boot's built-in vcap.* property source (see application.yml, cloud). -->
 
         <!-- JSON Processing -->
         <dependency>
@@ -120,6 +118,8 @@
     </dependencies>
 
     <build>
+        <!-- Produces target/credit-engine-2.0.jar (referenced by manifest.yml) -->
+        <finalName>credit-engine-2.0</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

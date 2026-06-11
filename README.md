@@ -37,7 +37,7 @@ flowchart TD
         CHAT["GenAI Assistant panel"]
     end
 
-    subgraph App["global-credit-engine (Spring Boot 3.5)"]
+    subgraph App["credit-engine-2.0 (Spring Boot 3.5)"]
         direction TB
         CTRL["REST Controllers<br/>/api/**"]
         ADMINCTRL["Admin Controller<br/>/admin/**"]
@@ -184,7 +184,7 @@ algorithm lives in `CreditScoreCalculator`.
 ## 5. Project outline
 
 ```
-global-credit-engine/
+credit-engine-2.0/
 ├── pom.xml                         # Spring Boot 3.5, Java 17, Spring AI
 ├── manifest.yml                    # Cloud Foundry bindings (credit-db/-cache/-msg/-chat)
 ├── README.md                       # this file
@@ -254,11 +254,11 @@ global-credit-engine/
 ## 8. Build & run
 
 ```bash
-# Build
-./mvnw clean package
+# Build (requires JDK 17; use system Maven — see AGENTS.md)
+mvn -DskipTests package          # -> target/credit-engine-2.0.jar
 
 # Run locally for frontend inspection (no Docker / no services needed)
-./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+java -jar target/credit-engine-2.0.jar --spring.profiles.active=local
 # open http://localhost:8080
 
 # Deploy to Tanzu Platform for Cloud Foundry

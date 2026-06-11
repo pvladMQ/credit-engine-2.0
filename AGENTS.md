@@ -49,9 +49,9 @@ Current baseline: **v2.0.0** (the refactored engine). List versions: `git tag -n
   before building.
 - Use **system Maven** (`mvn`), not `mvnw` — the Maven wrapper is missing
   `.mvn/wrapper/maven-wrapper.properties` and does not work.
-- Build: `mvn -DskipTests package` (with `JAVA_HOME` = JDK 17).
+- Build: `mvn -DskipTests package` (with `JAVA_HOME` = JDK 17). Produces `target/credit-engine-2.0.jar`.
 - Run locally for frontend inspection (no external services needed):
-  `java -jar target/global-credit-engine-1.0.0-SNAPSHOT.jar --spring.profiles.active=local`
+  `java -jar target/credit-engine-2.0.jar --spring.profiles.active=local`
 - `server.port` honors the `PORT` env var (also correct for Cloud Foundry).
 - Deploy to Tanzu: `cf push` (uses [manifest.yml](manifest.yml)).
 
@@ -78,6 +78,12 @@ These were the point of the refactor. Preserve them in every change.
    (`CreditTools`); it must **never** generate or execute raw SQL.
 6. **Spring App Advisor friendly.** Stay on Spring Boot **3.5.x** managed BOM versions and
    the Spring AI BOM. Do not hard-pin dependency versions that the BOMs manage.
+7. **Cloud service binding.** Do **not** bundle `spring-cloud-bindings` in `pom.xml` — the
+   Tanzu Java buildpack injects it; a second copy crashes the app at startup. Let the
+   buildpack binding auto-configure `spring.datasource` / `spring.data.redis` /
+   `spring.rabbitmq` from `VCAP_SERVICES` (the Postgres binding field is `user`, not
+   `username`, and `hosts` is an array — another reason not to hand-map it). Only the GenAI
+   (`credit-chat`) binding is mapped explicitly in the `cloud` profile.
 
 ---
 
