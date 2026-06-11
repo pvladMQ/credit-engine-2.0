@@ -1,0 +1,34 @@
+# Only the built jar (manifest 'path: target/credit-engine-2.0.jar') needs to ship to CF.
+# Everything below is excluded from the upload to keep pushes fast.
+
+.git/
+.github/
+.gitignore
+.gitattributes
+.cfignore
+
+# Local tooling / editor config
+.claude/
+.idea/
+.vscode/
+.mvn/
+mvnw
+mvnw.cmd
+
+# Source — the compiled jar is what runs on CF
+src/
+
+# Build intermediates (keep only the final jar in target/)
+target/classes/
+target/generated-sources/
+target/generated-test-sources/
+target/maven-archiver/
+target/maven-status/
+target/test-classes/
+target/*.jar.original
+
+# Docs and OS junk
+*.md
+desktop.ini
+Thumbs.db
+.DS_Store
