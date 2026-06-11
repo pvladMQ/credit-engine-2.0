@@ -1,4 +1,4 @@
-# Global Credit Scoring Engine - Walkthrough
+# Credit Engine v2 - Walkthrough
 
 ## Summary
 
@@ -7,12 +7,12 @@ Successfully created a **Spring Boot 3.x Maven project** demonstrating the "Data
 ## Project Structure
 
 ```
-credit-engine-2.0/
+credit-engine-v2/
 ├── pom.xml                    # Maven build with all dependencies
 ├── manifest.yml               # Cloud Foundry deployment config
 ├── README.md                  # Comprehensive documentation
 └── src/main/java/com/tanzu/creditengine/
-    ├── GlobalCreditEngineApplication.java
+    ├── CreditEngineV2Application.java
     ├── config/
     │   └── RabbitMQConfig.java
     ├── entity/

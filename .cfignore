@@ -1,4 +1,4 @@
-# Only the built jar (manifest 'path: target/credit-engine-2.0.jar') needs to ship to CF.
+# Only the built jar (manifest 'path: target/credit-engine-v2.jar') needs to ship to CF.
 # Everything below is excluded from the upload to keep pushes fast.
 
 .git/

@@ -3,7 +3,7 @@
 Conventions any agent (or human) must follow when changing this project. Read this
 before making edits, and keep it up to date when the rules change.
 
-Project: **Global Credit Scoring Engine** — Spring Boot 3.5 app on Tanzu Platform for
+Project: **Credit Engine v2** — Spring Boot 3.5 app on Tanzu Platform for
 Cloud Foundry. See [README.md](README.md) for architecture and [IMPLEMENTATION.md](IMPLEMENTATION.md)
 for the refactor plan/rationale.
 
@@ -49,9 +49,9 @@ Current baseline: **v2.0.0** (the refactored engine). List versions: `git tag -n
   before building.
 - Use **system Maven** (`mvn`), not `mvnw` — the Maven wrapper is missing
   `.mvn/wrapper/maven-wrapper.properties` and does not work.
-- Build: `mvn -DskipTests package` (with `JAVA_HOME` = JDK 17). Produces `target/credit-engine-2.0.jar`.
+- Build: `mvn -DskipTests package` (with `JAVA_HOME` = JDK 17). Produces `target/credit-engine-v2.jar`.
 - Run locally for frontend inspection (no external services needed):
-  `java -jar target/credit-engine-2.0.jar --spring.profiles.active=local`
+  `java -jar target/credit-engine-v2.jar --spring.profiles.active=local`
 - `server.port` honors the `PORT` env var (also correct for Cloud Foundry).
 - Deploy to Tanzu: `cf push` (uses [manifest.yml](manifest.yml)).
 

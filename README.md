@@ -1,4 +1,4 @@
-# Global Credit Scoring Engine
+# Credit Engine v2
 
 A Spring Boot 3.5 application that calculates customer **credit scores** from data held in
 PostgreSQL (the source of truth), caches the results in **Valkey** for sub-second retrieval,
@@ -37,7 +37,7 @@ flowchart TD
         CHAT["GenAI Assistant panel"]
     end
 
-    subgraph App["credit-engine-2.0 (Spring Boot 3.5)"]
+    subgraph App["credit-engine-v2 (Spring Boot 3.5)"]
         direction TB
         CTRL["REST Controllers<br/>/api/**"]
         ADMINCTRL["Admin Controller<br/>/admin/**"]
@@ -184,14 +184,14 @@ algorithm lives in `CreditScoreCalculator`.
 ## 5. Project outline
 
 ```
-credit-engine-2.0/
+credit-engine-v2/
 ├── pom.xml                         # Spring Boot 3.5, Java 17, Spring AI
 ├── manifest.yml                    # Cloud Foundry bindings (credit-db/-cache/-msg/-chat)
 ├── README.md                       # this file
 ├── IMPLEMENTATION.md               # phased refactor plan + rationale
 └── src/main/
     ├── java/com/tanzu/creditengine/
-    │   ├── GlobalCreditEngineApplication.java
+    │   ├── CreditEngineV2Application.java
     │   ├── config/
     │   │   ├── RabbitMQConfig.java          # queue + JSON converter (cloud)
     │   │   ├── ValkeyConfig.java            # RedisTemplate / cache (cloud)
@@ -255,10 +255,10 @@ credit-engine-2.0/
 
 ```bash
 # Build (requires JDK 17; use system Maven — see AGENTS.md)
-mvn -DskipTests package          # -> target/credit-engine-2.0.jar
+mvn -DskipTests package          # -> target/credit-engine-v2.jar
 
 # Run locally for frontend inspection (no Docker / no services needed)
-java -jar target/credit-engine-2.0.jar --spring.profiles.active=local
+java -jar target/credit-engine-v2.jar --spring.profiles.active=local
 # open http://localhost:8080
 
 # Deploy to Tanzu Platform for Cloud Foundry

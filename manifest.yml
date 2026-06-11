@@ -1,10 +1,10 @@
 ---
 applications:
-  - name: credit-engine-2.0
+  - name: credit-engine-v2
     memory: 1G
     disk_quota: 2G
     instances: 1
-    path: target/credit-engine-2.0.jar
+    path: target/credit-engine-v2.jar
     buildpacks:
       - java_buildpack_offline
     env:
@@ -18,7 +18,7 @@ applications:
       - credit-msg
       - credit-cache
       - credit-chat
-    # Random route ensures a unique public URL (e.g., credit-engine-2.0-brave-lion-xs.cfapps.io)
+    # Random route ensures a unique public URL (e.g., credit-engine-v2-brave-lion-xs.cfapps.io)
     random-route: true
     # Process health-check: CF only verifies the app process is alive. This prevents a
     # transient DOWN reading from an optional dependency's /actuator/health indicator

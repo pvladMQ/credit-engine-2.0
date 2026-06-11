@@ -12,9 +12,9 @@
     </parent>
 
     <groupId>com.tanzu</groupId>
-    <artifactId>credit-engine-2.0</artifactId>
+    <artifactId>credit-engine-v2</artifactId>
     <version>2.0.0</version>
-    <name>Global Credit Scoring Engine</name>
+    <name>Credit Engine v2</name>
     <description>Credit scoring on Tanzu Platform with PostgreSQL, Valkey, RabbitMQ and GenAI</description>
 
     <properties>
@@ -118,8 +118,8 @@
     </dependencies>
 
     <build>
-        <!-- Produces target/credit-engine-2.0.jar (referenced by manifest.yml) -->
-        <finalName>credit-engine-2.0</finalName>
+        <!-- Produces target/credit-engine-v2.jar (referenced by manifest.yml) -->
+        <finalName>credit-engine-v2</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

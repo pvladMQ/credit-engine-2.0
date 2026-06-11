@@ -6,7 +6,7 @@
 # ============================================================================
 spring:
   application:
-    name: credit-engine-2.0
+    name: credit-engine-v2
   profiles:
     default: local
   # Placeholder so Spring AI's OpenAI auto-config bootstraps even without a real key

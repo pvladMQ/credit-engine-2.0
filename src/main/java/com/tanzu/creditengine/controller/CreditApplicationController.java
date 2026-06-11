@@ -144,7 +144,7 @@ public class CreditApplicationController {
     public ResponseEntity<Map<String, Object>> status() {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("status", "UP");
-        body.put("service", "Global Credit Scoring Engine");
+        body.put("service", "Credit Engine v2");
 
         String vcap = System.getenv("VCAP_SERVICES");
         boolean onCf = vcap != null && !vcap.isBlank() && !vcap.equals("{}");
@@ -166,7 +166,7 @@ public class CreditApplicationController {
 
     @GetMapping("/health")
     public ResponseEntity<Map<String, String>> health() {
-        return ResponseEntity.ok(Map.of("status", "UP", "service", "Global Credit Scoring Engine"));
+        return ResponseEntity.ok(Map.of("status", "UP", "service", "Credit Engine v2"));
     }
 
     private static double round(double v) {

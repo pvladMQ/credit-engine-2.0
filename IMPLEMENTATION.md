@@ -1,6 +1,6 @@
-# Implementation Plan — Global Credit Scoring Engine Refactor
+# Implementation Plan — Credit Engine v2 Refactor
 
-This document is the working plan for refactoring the Global Credit Scoring Engine. It maps every
+This document is the working plan for refactoring Credit Engine v2. It maps every
 requirement in the brief to a concrete change, explains *why*, and tracks progress in phases.
 The target architecture itself is described in [README.md](README.md).
 
