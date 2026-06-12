@@ -19,7 +19,9 @@
 
     <properties>
         <java.version>17</java.version>
-        <spring-ai.version>1.0.0</spring-ai.version>
+        <!-- 1.1.x aligns with java-cfenv-boot-tanzu-genai 3.5.x (which binds spring-ai-openai 1.1.2) -->
+        <spring-ai.version>1.1.2</spring-ai.version>
+        <java-cfenv.version>3.5.1</java-cfenv.version>
     </properties>
 
     <dependencyManagement>
@@ -77,6 +79,16 @@
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-starter-model-openai</artifactId>
+        </dependency>
+
+        <!-- java-cfenv Tanzu GenAI locator: reads the 'ai-models' (credit-chat) binding
+             (CredHub-backed, multi-model 'endpoint' format) from VCAP_SERVICES and exposes a
+             GenaiLocator that builds a ready Spring AI ChatModel for the bound model. This is
+             how the cloud profile talks to the locally-hosted gpt-oss model. -->
+        <dependency>
+            <groupId>io.pivotal.cfenv</groupId>
+            <artifactId>java-cfenv-boot-tanzu-genai</artifactId>
+            <version>${java-cfenv.version}</version>
         </dependency>
 
         <!-- NOTE: do NOT bundle spring-cloud-bindings here. The Tanzu Java buildpack
