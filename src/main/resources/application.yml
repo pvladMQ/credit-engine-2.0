@@ -106,13 +106,18 @@ spring:
         max-concurrency: 4
         prefetch: 10
 
-  # Tanzu GenAI 'credit-chat' exposes an OpenAI-compatible API. The GenAI tile binding is
-  # not auto-mapped by spring-cloud-bindings, so map it explicitly from VCAP_SERVICES.
-  # Credential key names depend on the GenAI tile; adjust if your binding differs.
-  ai:
-    openai:
-      api-key: ${vcap.services.credit-chat.credentials.api_key:not-set}
-      base-url: ${vcap.services.credit-chat.credentials.api_base:https://api.openai.com}
-      chat:
-        options:
-          model: ${vcap.services.credit-chat.credentials.model_name:gpt-4o-mini}
+# The GenAI 'credit-chat' binding is consumed via the java-cfenv GenaiLocator (see AiConfig),
+# NOT via spring.ai.openai.* — its credentials are CredHub-backed under a nested 'endpoint'
+# object, which a flat property mapping cannot read.
+#
+# Confine java-cfenv to the GenAI service only: the DB / Valkey / RabbitMQ bindings are already
+# auto-configured by the buildpack's spring-cloud-bindings, so we disable java-cfenv for them to
+# avoid double-mapping the datasource/cache/broker.
+cfenv:
+  service:
+    credit-db:
+      enabled: false
+    credit-cache:
+      enabled: false
+    credit-msg:
+      enabled: false

@@ -82,8 +82,14 @@ These were the point of the refactor. Preserve them in every change.
    Tanzu Java buildpack injects it; a second copy crashes the app at startup. Let the
    buildpack binding auto-configure `spring.datasource` / `spring.data.redis` /
    `spring.rabbitmq` from `VCAP_SERVICES` (the Postgres binding field is `user`, not
-   `username`, and `hosts` is an array — another reason not to hand-map it). Only the GenAI
-   (`credit-chat`) binding is mapped explicitly in the `cloud` profile.
+   `username`, and `hosts` is an array — another reason not to hand-map it).
+8. **GenAI binding (`credit-chat`).** The GenAI service is an `ai-models` tile binding whose
+   credentials are **CredHub-backed** and nested under `credentials.endpoint.*` (multi-model
+   format) — a flat `spring.ai.openai.*` VCAP mapping cannot read it and silently falls back to
+   api.openai.com. Consume it via `io.pivotal.cfenv:java-cfenv-boot-tanzu-genai` (3.5.x for the
+   Spring Boot 3.5 / Spring AI 1.1.x line): inject `GenaiLocator` and build the `ChatClient` from
+   `getFirstAvailableToolModel()` (see `AiConfig`). Confine java-cfenv to the GenAI service with
+   `cfenv.service.<db/cache/msg>.enabled=false` so it doesn't double-map the buildpack bindings.
 
 ---
 
