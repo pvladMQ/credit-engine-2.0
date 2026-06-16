@@ -118,6 +118,22 @@
         .alert { border-radius: 12px; padding: 12px 15px; font-size: .86rem; font-weight: 500; margin-bottom: 18px; display: flex; align-items: center; gap: 9px; }
         .alert-success { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
         .alert-danger { background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; }
+
+        .db-summary { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+        .db-stat { background: #f8fafc; border: 1px solid var(--line); border-radius: 12px; padding: 10px 16px; }
+        .db-stat .n { font-size: 1.3rem; font-weight: 800; letter-spacing: -.02em; }
+        .db-stat .l { font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+
+        table.dbtable { width: 100%; border-collapse: collapse; font-size: .85rem; }
+        table.dbtable th { text-align: left; font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; color: var(--faint); padding: 9px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+        table.dbtable td { padding: 9px 10px; border-bottom: 1px solid #f1f5f9; white-space: nowrap; }
+        table.dbtable tbody tr:hover { background: #fafbff; }
+        table.dbtable code { font-family: 'JetBrains Mono', monospace; font-size: .78rem; color: var(--brand2); }
+        .pill-risk { padding: 3px 9px; border-radius: 999px; font-size: .7rem; font-weight: 600; }
+        .pill-LOW_RISK { background: #dcfce7; color: #15803d; }
+        .pill-MEDIUM_RISK { background: #fef9c3; color: #a16207; }
+        .pill-HIGH_RISK { background: #ffe4e6; color: #be123c; }
+        .pill-VERY_HIGH_RISK { background: #4c0519; color: #fecdd3; }
     </style>
 </head>
 
@@ -186,14 +202,84 @@
             </div>
         </div>
 
-        <div class="foot-note">Settings are persisted in PostgreSQL and applied immediately to new cache writes.</div>
+        <div class="foot-note" style="margin-bottom: 26px;">Settings are persisted in PostgreSQL and applied immediately to new cache writes.</div>
+
+        <!-- Database browser -->
+        <div class="card">
+            <div class="card-head" style="display:flex; align-items:center; justify-content:space-between;">
+                <h2><i class="bi bi-database ico"></i> Database (PostgreSQL)</h2>
+                <button class="btn btn-ghost" style="padding:8px 13px;" onclick="loadData()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+            </div>
+            <div class="card-body">
+                <div id="dbSummary" class="db-summary"></div>
+                <div style="overflow-x:auto;">
+                    <table class="dbtable">
+                        <thead>
+                            <tr>
+                                <th>SSN</th>
+                                <th>Full Name</th>
+                                <th>Country</th>
+                                <th>History</th>
+                                <th>Delinq.</th>
+                                <th>Criminal</th>
+                                <th>Score</th>
+                                <th>Risk</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dbTableBody">
+                            <tr><td colspan="8" style="text-align:center; color:var(--faint); padding:24px;">Loading…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="help" style="margin-top:10px;">Showing the first 25 customers. "Score" is blank until an application is scored for that customer.</div>
+            </div>
+        </div>
+
+        <div class="foot-note">Read-only view of the source-of-truth tables.</div>
     </main>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             loadSettings();
+            loadData();
             document.getElementById('settingsForm').addEventListener('submit', saveSettings);
         });
+
+        async function loadData() {
+            try {
+                const [summary, customers] = await Promise.all([
+                    fetch('/api/data/summary').then(r => r.json()),
+                    fetch('/api/data/customers?limit=25').then(r => r.json())
+                ]);
+
+                const labels = { customers: 'Customers', creditHistory: 'Credit History', criminalRecords: 'Criminal Records', creditScores: 'Calculated Scores' };
+                document.getElementById('dbSummary').innerHTML = Object.keys(labels).map(k =>
+                    `<div class="db-stat"><div class="n">${summary[k] ?? 0}</div><div class="l">${labels[k]}</div></div>`
+                ).join('');
+
+                const tbody = document.getElementById('dbTableBody');
+                if (!Array.isArray(customers) || customers.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--faint); padding:24px;">No customers found.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = customers.map(c => {
+                    const risk = c.riskLevel ? `<span class="pill-risk pill-${c.riskLevel}">${c.riskLevel.replace(/_RISK$/, '').replace(/_/g, ' ')}</span>` : '<span style="color:var(--faint)">—</span>';
+                    return `<tr>
+                        <td><code>${c.ssn}</code></td>
+                        <td>${c.fullName ?? '—'}</td>
+                        <td>${c.country ?? '—'}</td>
+                        <td>${c.creditHistoryScore ?? '—'}</td>
+                        <td>${c.delinquencies ?? '—'}</td>
+                        <td>${c.criminalRecords > 0 ? '<span style="color:var(--danger,#be123c); font-weight:600;">' + c.criminalRecords + '</span>' : '0'}</td>
+                        <td>${c.calculatedScore ?? '<span style="color:var(--faint)">—</span>'}</td>
+                        <td>${risk}</td>
+                    </tr>`;
+                }).join('');
+            } catch (e) {
+                document.getElementById('dbTableBody').innerHTML =
+                    `<tr><td colspan="8" style="text-align:center; color:#be123c; padding:24px;">Failed to load data: ${e.message}</td></tr>`;
+            }
+        }
 
         async function loadSettings() {
             try {
