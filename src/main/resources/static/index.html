@@ -590,12 +590,18 @@
             tableContainer.innerHTML = '';
             loader.style.display = 'block';
 
+            // Don't spin forever if the model is slow/unreachable — bail out after 95s.
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 95000);
+
             try {
                 const response = await fetch('/api/ai/query', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt: query })
+                    body: JSON.stringify({ prompt: query }),
+                    signal: controller.signal
                 });
+                clearTimeout(timeoutId);
 
                 const data = await response.json();
                 loader.style.display = 'none';
@@ -623,9 +629,13 @@
                 }
                 tableContainer.innerHTML = html;
             } catch (error) {
+                clearTimeout(timeoutId);
                 console.error('AI Query failed:', error);
                 loader.style.display = 'none';
-                tableContainer.innerHTML = `<div class="notice notice-danger">Error: AI service currently unavailable.</div>`;
+                const msg = error.name === 'AbortError'
+                    ? 'The AI request timed out. The model may be slow or unavailable — please try again.'
+                    : 'Error: AI service currently unavailable.';
+                tableContainer.innerHTML = `<div class="notice notice-danger">${msg}</div>`;
             }
         }
 

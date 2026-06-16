@@ -5,9 +5,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.boot.web.client.RestClientCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+
+import java.time.Duration;
 
 /**
  * Builds the Spring AI {@link ChatClient} for the Tanzu GenAI {@code credit-chat} service.
@@ -48,5 +52,20 @@ public class AiConfig {
             chatModel = genaiLocator.getFirstAvailableChatModel();
         }
         return ChatClient.builder(chatModel).defaultSystem(SYSTEM_PROMPT).build();
+    }
+
+    /**
+     * Bounds the GenAI HTTP calls so a slow/unresponsive model can't make the assistant
+     * spin forever — on timeout the request fails and the assistant returns a message
+     * instead of hanging. Applies to the RestClient the GenaiLocator's model uses.
+     */
+    @Bean
+    public RestClientCustomizer genaiRestClientTimeoutCustomizer() {
+        return builder -> {
+            SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+            factory.setConnectTimeout((int) Duration.ofSeconds(10).toMillis());
+            factory.setReadTimeout((int) Duration.ofSeconds(90).toMillis());
+            builder.requestFactory(factory);
+        };
     }
 }

@@ -51,8 +51,18 @@ public class CreditApplicationController {
 
     @PostMapping("/apply")
     public ResponseEntity<Map<String, Object>> submit(@Valid @RequestBody ScoreRequest request) {
-        publisher.publish(request);
-        metrics.recordApplication();
+        try {
+            publisher.publish(request);
+            metrics.recordApplication();
+        } catch (RuntimeException ex) {
+            // Surface the real cause (e.g. broker connectivity) instead of a blank 500.
+            log.error("Failed to submit scoring request for {}: {}", request.getSsn(), ex.toString(), ex);
+            metrics.logEvent("Submit failed for " + request.getSsn() + ": " + ex.getMessage());
+            Map<String, Object> body = new LinkedHashMap<>();
+            body.put("status", "error");
+            body.put("message", "Could not queue the application: " + ex.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(body);
+        }
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("status", "accepted");
         body.put("message", "Scoring request submitted for processing");
